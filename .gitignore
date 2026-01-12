@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+
+# IntelliJ / IDEA
+.idea/
+*.iml
+out/
+
+# Gradle
+.gradle/
+**/build/
+
+# Android
+/android/local.properties
+/android/.gradle/
+/android/**/build/
+
+# iOS / Xcode
+**/DerivedData/
+**/*.xcuserdata/
+**/*.moved-aside
+
+# Logs
+*.log
+EOF
