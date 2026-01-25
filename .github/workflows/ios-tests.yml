@@ -31,21 +31,23 @@ jobs:
           sleep 15
         working-directory: backend
 
-      - name: Run iOS unit tests
+      - name: Run unit tests
         run: |
           xcodebuild test \
             -scheme iosTests \
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 15' \
             -only-testing:StatusCheckParserTests
+        working-directory: ios
 
-      - name: Run iOS UI tests
+      - name: Run UI tests
         run: |
           xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 15' \
             -only-testing:iosUITests/testTapCheckStatusShowsCorrectLabel
+        working-directory: ios
 
       - name: Upload backend log
         if: always()
