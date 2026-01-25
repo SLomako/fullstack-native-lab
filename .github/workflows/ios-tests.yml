@@ -54,45 +54,31 @@ jobs:
             -resultBundlePath ui-result/iosUITests.xcresult
         working-directory: ios
 
-      - name: Convert Unit Test Report to HTML
+      - name: Generate unit test HTML report
         run: |
           mkdir -p unit-report
-          xcrun xcresulttool get --path unit-result/iosTests.xcresult --format json > unit-report/result.json || true
+          xcrun xcresulttool export --path unit-result/iosTests.xcresult --output-path unit-report --type html
         working-directory: ios
 
-      - name: Convert UI Test Report to HTML
+      - name: Generate UI test HTML report
         run: |
           mkdir -p ui-report
-          xcrun xcresulttool get --path ui-result/iosUITests.xcresult --format json > ui-report/result.json || true
+          xcrun xcresulttool export --path ui-result/iosUITests.xcresult --output-path ui-report --type html
         working-directory: ios
-
-      - name: Upload unit test result bundle
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-unit-tests-xcresult
-          path: ios/unit-result/iosTests.xcresult
-
-      - name: Upload UI test result bundle
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-ui-tests-xcresult
-          path: ios/ui-result/iosUITests.xcresult
 
       - name: Upload unit test HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ios-unit-tests-html
-          path: ios/unit-report/result.json
+          path: ios/unit-report
 
       - name: Upload UI test HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ios-ui-tests-html
-          path: ios/ui-report/result.json
+          path: ios/ui-report
 
       - name: Upload backend log
         if: always()
