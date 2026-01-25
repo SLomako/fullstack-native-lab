@@ -22,8 +22,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build and test
-        run: ./gradlew test --info --tests '*'
+      - name: Build JAR
+        run: ./gradlew bootJar
+
+      - name: Run backend JAR
+        run: |
+          nohup java -jar build/libs/backend-*.jar > app.log 2>&1 &
+          sleep 10  # подождать, пока поднимется сервер
+
+      - name: Run all tests (unit + API)
+        run: ./gradlew test
 
       - name: Upload test report
         if: always()
@@ -31,3 +39,10 @@ jobs:
         with:
           name: test-report
           path: backend/build/reports/tests/test
+
+      - name: Upload app log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-log
+          path: backend/app.log
