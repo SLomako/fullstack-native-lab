@@ -36,19 +36,37 @@ jobs:
 
       - name: Run unit tests
         run: |
+          mkdir -p ios/unit-result
           xcodebuild test \
             -scheme iosTests \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.2'
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.2' \
+            -resultBundlePath ios/unit-result/iosTests.xcresult
         working-directory: ios
 
       - name: Run UI tests
         run: |
+          mkdir -p ios/ui-result
           xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.2'
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.2' \
+            -resultBundlePath ios/ui-result/iosUITests.xcresult
         working-directory: ios
+
+      - name: Upload unit test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unit-tests
+          path: ios/unit-result
+
+      - name: Upload UI test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ui-tests
+          path: ios/ui-result
 
       - name: Upload backend log
         if: always()
