@@ -31,12 +31,23 @@ jobs:
           sleep 15
         working-directory: backend
 
+      - name: Create and boot iOS simulator
+        run: |
+          SIMULATOR_NAME="ci-simulator"
+          DEVICE_TYPE="iPhone 15"
+          OS_VERSION=$(xcrun simctl list runtimes | grep -Eo 'iOS [0-9.]+' | head -n 1 | awk '{print $2}')
+          
+          xcrun simctl delete unavailable || true
+          xcrun simctl create "$SIMULATOR_NAME" "com.apple.CoreSimulator.SimDeviceType.$DEVICE_TYPE" "com.apple.CoreSimulator.SimRuntime.iOS-$OS_VERSION"
+          xcrun simctl boot "$SIMULATOR_NAME"
+          xcrun simctl list devices
+
       - name: Run unit tests
         run: |
           xcodebuild test \
             -scheme iosTests \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=Any iOS Simulator Device'
+            -destination 'platform=iOS Simulator,name=ci-simulator'
         working-directory: ios
 
       - name: Run UI tests
@@ -44,7 +55,7 @@ jobs:
           xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=Any iOS Simulator Device'
+            -destination 'platform=iOS Simulator,name=ci-simulator'
         working-directory: ios
 
       - name: Upload backend log
