@@ -23,4 +23,4 @@ jobs:
           distribution: 'temurin'
 
       - name: Build and test
-        run: ./gradlew test
+        run: ./gradlew test --info --tests '*'
