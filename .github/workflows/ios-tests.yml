@@ -36,7 +36,7 @@ jobs:
           xcodebuild test \
             -scheme iosTests \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.2'
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.2' \
             -only-testing:StatusCheckParserTests
         working-directory: ios
 
@@ -45,7 +45,7 @@ jobs:
           xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.2'
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.2' \
             -only-testing:iosUITests/testTapCheckStatusShowsCorrectLabel
         working-directory: ios
 
