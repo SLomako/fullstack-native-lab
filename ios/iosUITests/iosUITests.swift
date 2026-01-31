@@ -17,7 +17,7 @@ final class iosUITests: XCTestCase {
         XCTAssertTrue(checkButton.waitForExistence(timeout: 2), "The 'Check Status' button was not found")
         checkButton.tap()
         
-        let statusText = app.staticTexts["Status: ok\nVersion: 0.0.2-SNAPSHOT"]
+        let statusText = app.staticTexts["Status: ok\nVersion: 0.0.1-SNAPSHOT"]
         XCTAssertTrue(statusText.waitForExistence(timeout: 2), "Expected status text was not found")
     }
 }
