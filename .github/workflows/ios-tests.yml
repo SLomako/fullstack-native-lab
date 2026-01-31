@@ -47,5 +47,13 @@ jobs:
           xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5'
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
+            -resultBundlePath ui.xcresult
         working-directory: ios
+
+      - name: Upload UI xcresult
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-xcresult
+          path: ios/ui.xcresult
