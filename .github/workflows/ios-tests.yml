@@ -28,12 +28,28 @@ jobs:
       - name: Run backend
         working-directory: backend
         run: |
-          nohup java -jar build/libs/backend-*.jar > backend.log 2>&1 &
+          ls -lah build/libs || true
+
+          JAR=$(ls build/libs/backend-*.jar 2>/dev/null | head -n 1)
+          echo "JAR=$JAR"
+          if [ -z "$JAR" ]; then
+            echo "ERROR: backend jar not found"
+            exit 1
+          fi
+
+          nohup java -jar "$JAR" > backend.log 2>&1 &
+          echo "PID=$!"
+
           for i in {1..30}; do
-            curl -sf http://127.0.0.1:8080/health > /dev/null && exit 0
+            if curl -sf http://127.0.0.1:8080/health > /dev/null; then
+              echo "Backend is up"
+              exit 0
+            fi
             sleep 1
           done
-          cat backend.log
+
+          echo "ERROR: backend did not start"
+          tail -n 200 backend.log || true
           exit 1
 
       - name: Select Xcode 16.4
