@@ -27,7 +27,7 @@ jobs:
 
       - name: Run backend
         run: |
-          nohup java -jar backend/build/libs/backend-*.jar > backend.log 2>&1 &
+          nohup java -jar build/libs/backend-*.jar > backend.log 2>&1 &
           sleep 15
         working-directory: backend
 
@@ -36,53 +36,16 @@ jobs:
 
       - name: Run unit tests
         run: |
-          mkdir -p unit-result
           xcodebuild test \
             -scheme iosTests \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
-            -resultBundlePath unit-result/iosTests.xcresult
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5'
         working-directory: ios
 
       - name: Run UI tests
         run: |
-          mkdir -p ui-result
           xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
-            -resultBundlePath ui-result/iosUITests.xcresult
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5'
         working-directory: ios
-
-      - name: Generate unit test HTML report
-        run: |
-          mkdir -p unit-report
-          xcrun xcresulttool export --path unit-result/iosTests.xcresult --output-path unit-report --type html
-        working-directory: ios
-
-      - name: Generate UI test HTML report
-        run: |
-          mkdir -p ui-report
-          xcrun xcresulttool export --path ui-result/iosUITests.xcresult --output-path ui-report --type html
-        working-directory: ios
-
-      - name: Upload unit test HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-unit-tests-html
-          path: ios/unit-report
-
-      - name: Upload UI test HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-ui-tests-html
-          path: ios/ui-report
-
-      - name: Upload backend log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-log
-          path: backend/backend.log
