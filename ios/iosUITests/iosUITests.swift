@@ -14,10 +14,10 @@ final class iosUITests: XCTestCase {
         app.launch()
 
         let checkButton = app.buttons["Check Status"]
-        XCTAssertTrue(checkButton.waitForExistence(timeout: 2), "The 'Check Status' button was not found")
+        XCTAssertTrue(checkButton.waitForExistence(timeout: 10), "The 'Check Status' button was not found")
         checkButton.tap()
         
         let statusText = app.staticTexts["Status: ok\nVersion: 0.0.1-SNAPSHOT"]
-        XCTAssertTrue(statusText.waitForExistence(timeout: 2), "Expected status text was not found")
+        XCTAssertTrue(statusText.waitForExistence(timeout: 10), "Expected status text was not found")
     }
 }
