@@ -51,6 +51,12 @@ jobs:
           echo "ERROR: backend did not start"
           tail -n 200 backend.log || true
           exit 1
+      - name: Check backend from Simulator
+        run: |
+          UDID=$(xcrun simctl list devices available | grep -m 1 "iPhone 16 (" | sed -n 's/.*(\(.*\)).*/\1/p')
+          echo "UDID=$UDID"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl spawn "$UDID" curl -sf http://127.0.0.1:8080/health
 
       - name: Select Xcode 16.4
         run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
