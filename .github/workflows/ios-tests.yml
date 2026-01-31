@@ -51,9 +51,14 @@ jobs:
             -resultBundlePath ui.xcresult
         working-directory: ios
 
+      - name: Pack UI xcresult
+        if: always()
+        working-directory: ios
+        run: ditto -c -k --keepParent ui.xcresult ui.xcresult.zip
+
       - name: Upload UI xcresult
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ui-xcresult
-          path: ios/ui.xcresult
+          path: ios/ui.xcresult.zip
