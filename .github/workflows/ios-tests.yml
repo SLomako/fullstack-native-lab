@@ -26,10 +26,15 @@ jobs:
         working-directory: backend
 
       - name: Run backend
+        working-directory: backend
         run: |
           nohup java -jar build/libs/backend-*.jar > backend.log 2>&1 &
-          sleep 15
-        working-directory: backend
+          for i in {1..30}; do
+            curl -sf http://127.0.0.1:8080/health > /dev/null && exit 0
+            sleep 1
+          done
+          cat backend.log
+          exit 1
 
       - name: Select Xcode 16.4
         run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
