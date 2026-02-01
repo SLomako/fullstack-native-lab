@@ -38,8 +38,9 @@ jobs:
             --server.port=8080 \
             > backend.log 2>&1 &
 
+          # ждём, пока бэк реально начнёт отвечать
           for i in {1..60}; do
-            curl -sf http://127.0.0.1:8080/health > /dev/null && exit 0
+            curl -sf http://127.0.0.1:8080/health >/dev/null && exit 0
             sleep 1
           done
 
@@ -48,26 +49,27 @@ jobs:
 
       - name: Export backend host
         run: |
+          set -euo pipefail
           HOST=$(ipconfig getifaddr en0 || ipconfig getifaddr en1)
+          if [ -z "$HOST" ]; then
+            echo "BACKEND_HOST is empty (en0/en1 not found)"
+            exit 1
+          fi
           echo "BACKEND_HOST=$HOST" >> "$GITHUB_ENV"
-          echo "BACKEND_HOST=$HOST"
 
       - name: Run unit tests
         working-directory: ios
         run: |
-          set -euo pipefail
           xcodebuild test \
             -scheme iosTests \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5'
 
       - name: Run UI tests
         working-directory: ios
         env:
           BACKEND_HOST: ${{ env.BACKEND_HOST }}
         run: |
-          set -euo pipefail
           xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
