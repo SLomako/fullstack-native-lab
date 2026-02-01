@@ -58,10 +58,7 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5'
 
       - name: Run UI tests
-        continue-on-error: true
         working-directory: ios
-        env:
-          BACKEND_HOST: ${{ env.BACKEND_HOST }}
         run: |
           xcodebuild test \
             -scheme iosUITests \
