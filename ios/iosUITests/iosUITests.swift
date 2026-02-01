@@ -6,15 +6,37 @@ final class iosUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-
         app = XCUIApplication()
 
-        // важно: задать launchEnvironment ДО launch()
         let host = ProcessInfo.processInfo.environment["BACKEND_HOST"] ?? "127.0.0.1"
         app.launchEnvironment["BACKEND_HOST"] = host
     }
 
-    func testTapCheckStatusShowsCorrectLabel() {
+    func testTapCheckStatusShowsCorrectLabel() throws {
+ъ        let host = ProcessInfo.processInfo.environment["BACKEND_HOST"] ?? "127.0.0.1"
+        let url = URL(string: "http://\(host):8080/health")!
+        print("DEBUG /health url:", url.absoluteString)
+
+        let sema = DispatchSemaphore(value: 0)
+        var debugText = ""
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            defer { sema.signal() }
+
+            if let error = error {
+                debugText = "ERROR: \(error)"
+                return
+            }
+
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            let body = String(data: data ?? Data(), encoding: .utf8) ?? "<non-utf8>"
+            debugText = "HTTP \(status)\n\(body)"
+        }.resume()
+
+        _ = sema.wait(timeout: .now() + 10)
+
+        print("DEBUG /health response:\n\(debugText)")
+
         app.launch()
 
         let checkButton = app.buttons["Check Status"]
