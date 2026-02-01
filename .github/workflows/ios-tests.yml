@@ -27,33 +27,47 @@ jobs:
         working-directory: backend
         run: ./gradlew bootJar
 
-      - name: Run backend
+      - name: Run backend and wait for /health
         working-directory: backend
         run: |
+          set -euo pipefail
+
           JAR=$(ls build/libs/backend-*.jar | head -n 1)
           nohup java -jar "$JAR" \
             --server.address=0.0.0.0 \
             --server.port=8080 \
             > backend.log 2>&1 &
 
+          for i in {1..60}; do
+            curl -sf http://127.0.0.1:8080/health > /dev/null && exit 0
+            sleep 1
+          done
+
+          tail -n 200 backend.log
+          exit 1
+
       - name: Export backend host
         run: |
           HOST=$(ipconfig getifaddr en0 || ipconfig getifaddr en1)
           echo "BACKEND_HOST=$HOST" >> "$GITHUB_ENV"
+          echo "BACKEND_HOST=$HOST"
 
       - name: Run unit tests
         working-directory: ios
         run: |
+          set -euo pipefail
           xcodebuild test \
             -scheme iosTests \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5'
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
 
       - name: Run UI tests
         working-directory: ios
         env:
           BACKEND_HOST: ${{ env.BACKEND_HOST }}
         run: |
+          set -euo pipefail
           xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
