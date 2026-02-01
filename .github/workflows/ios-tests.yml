@@ -38,7 +38,6 @@ jobs:
             --server.port=8080 \
             > backend.log 2>&1 &
 
-          # ждём, пока бэк реально начнёт отвечать
           for i in {1..60}; do
             curl -sf http://127.0.0.1:8080/health >/dev/null && exit 0
             sleep 1
