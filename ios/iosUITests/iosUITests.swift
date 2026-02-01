@@ -15,6 +15,7 @@ final class iosUITests: XCTestCase {
     func testTapCheckStatusShowsCorrectLabel() throws {
         app.launch()
 
+
         let checkButton = app.buttons["Check Status"]
         XCTAssertTrue(checkButton.waitForExistence(timeout: 10))
         checkButton.tap()
