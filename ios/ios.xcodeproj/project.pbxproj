@@ -27,7 +27,6 @@
 		DA6B11DE2F261EEC00F5C4B4 /* ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA6B11ED2F261EEE00F5C4B4 /* iosTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA6B11F72F261EEE00F5C4B4 /* iosUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		DADFB9732F2FAE7C00292762 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -43,12 +42,20 @@
 			);
 			target = DA6B11EC2F261EEE00F5C4B4 /* iosTests */;
 		};
+		DADFB9902F2FB58F00292762 /* Exceptions for "ios" folder in "ios" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DA6B11DD2F261EEC00F5C4B4 /* ios */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DA6B11E02F261EEC00F5C4B4 /* ios */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				DADFB9902F2FB58F00292762 /* Exceptions for "ios" folder in "ios" target */,
 				DA6B12252F26611500F5C4B4 /* Exceptions for "ios" folder in "iosTests" target */,
 			);
 			path = ios;
@@ -94,7 +101,6 @@
 		DA6B11D52F261EEC00F5C4B4 = {
 			isa = PBXGroup;
 			children = (
-				DADFB9732F2FAE7C00292762 /* Info.plist */,
 				DA6B11E02F261EEC00F5C4B4 /* ios */,
 				DA6B11F02F261EEE00F5C4B4 /* iosTests */,
 				DA6B11FA2F261EEE00F5C4B4 /* iosUITests */,
