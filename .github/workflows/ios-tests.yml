@@ -47,7 +47,10 @@ jobs:
           exit 1
 
       - name: Export backend host
-        run: echo "BACKEND_HOST=$(ipconfig getifaddr en0)" >> "$GITHUB_ENV"
+        run: |
+          HOST=$(ipconfig getifaddr en0 || ipconfig getifaddr en1)
+          echo "BACKEND_HOST=$HOST" >> "$GITHUB_ENV"
+          echo "BACKEND_HOST=$HOST"
 
       - name: Run unit tests
         working-directory: ios
