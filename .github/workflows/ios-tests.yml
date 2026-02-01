@@ -12,8 +12,7 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Select Xcode 16.4
         run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
@@ -31,6 +30,7 @@ jobs:
       - name: Run backend and wait for /health
         working-directory: backend
         run: |
+          set -euo pipefail
           JAR=$(ls build/libs/backend-*.jar | head -n 1)
 
           nohup java -jar "$JAR" \
@@ -43,15 +43,25 @@ jobs:
             sleep 1
           done
 
+          echo "Backend did not start"
           tail -n 200 backend.log
           exit 1
 
       - name: Export backend host
         run: echo "BACKEND_HOST=$(ipconfig getifaddr en0)" >> "$GITHUB_ENV"
 
+      # ВАЖНО: проверить из симулятора один раз (иначе ты снова будешь гадать)
+      - name: Check backend from Simulator
+        run: |
+          set -euo pipefail
+          UDID=$(xcrun simctl list devices available | awk -F'[()]' '/iPhone 16/{print $2; exit}')
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl spawn "$UDID" curl -sf "http://${BACKEND_HOST}:8080/health" > /dev/null
+
       - name: Run unit tests
         working-directory: ios
         run: |
+          set -euo pipefail
           xcodebuild test \
             -scheme iosTests \
             -sdk iphonesimulator \
@@ -60,6 +70,7 @@ jobs:
       - name: Run UI tests
         working-directory: ios
         run: |
+          set -euo pipefail
           xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
@@ -70,7 +81,9 @@ jobs:
         if: always()
         working-directory: ios
         run: |
-          test -d ui.xcresult && ditto -c -k --keepParent ui.xcresult ui.xcresult.zip || true
+          if [ -d ui.xcresult ]; then
+            ditto -c -k --keepParent ui.xcresult ui.xcresult.zip
+          fi
 
       - name: Upload UI xcresult
         if: always()
@@ -78,3 +91,10 @@ jobs:
         with:
           name: ui-xcresult
           path: ios/ui.xcresult.zip
+
+      - name: Upload backend log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-log
+          path: backend/backend.log
