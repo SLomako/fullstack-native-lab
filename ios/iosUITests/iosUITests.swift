@@ -6,13 +6,14 @@ final class iosUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+
         app = XCUIApplication()
 
+        // важно: задать launchEnvironment ДО launch()
         let host = ProcessInfo.processInfo.environment["BACKEND_HOST"] ?? "127.0.0.1"
         app.launchEnvironment["BACKEND_HOST"] = host
     }
 
-    @MainActor
     func testTapCheckStatusShowsCorrectLabel() {
         app.launch()
 
