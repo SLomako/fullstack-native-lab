@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		DADFB9742F2FAE7F00292762 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DADFB9732F2FAE7C00292762 /* Info.plist */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		DA6B11EE2F261EEE00F5C4B4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -236,7 +232,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DADFB9742F2FAE7F00292762 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
