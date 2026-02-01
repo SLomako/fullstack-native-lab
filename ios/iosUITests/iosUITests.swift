@@ -13,7 +13,7 @@ final class iosUITests: XCTestCase {
     }
 
     func testTapCheckStatusShowsCorrectLabel() throws {
-ъ        let host = ProcessInfo.processInfo.environment["BACKEND_HOST"] ?? "127.0.0.1"
+        let host = ProcessInfo.processInfo.environment["BACKEND_HOST"] ?? "127.0.0.1"
         let url = URL(string: "http://\(host):8080/health")!
         print("DEBUG /health url:", url.absoluteString)
 
