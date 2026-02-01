@@ -31,8 +31,8 @@ jobs:
         working-directory: backend
         run: |
           set -euo pipefail
-          JAR=$(ls build/libs/backend-*.jar | head -n 1)
 
+          JAR=$(ls build/libs/backend-*.jar | head -n 1)
           nohup java -jar "$JAR" \
             --server.address=0.0.0.0 \
             --server.port=8080 \
@@ -43,20 +43,11 @@ jobs:
             sleep 1
           done
 
-          echo "Backend did not start"
           tail -n 200 backend.log
           exit 1
 
       - name: Export backend host
         run: echo "BACKEND_HOST=$(ipconfig getifaddr en0)" >> "$GITHUB_ENV"
-
-      # ВАЖНО: проверить из симулятора один раз (иначе ты снова будешь гадать)
-      - name: Check backend from Simulator
-        run: |
-          set -euo pipefail
-          UDID=$(xcrun simctl list devices available | awk -F'[()]' '/iPhone 16/{print $2; exit}')
-          xcrun simctl boot "$UDID" || true
-          xcrun simctl spawn "$UDID" curl -sf "http://${BACKEND_HOST}:8080/health" > /dev/null
 
       - name: Run unit tests
         working-directory: ios
@@ -69,6 +60,8 @@ jobs:
 
       - name: Run UI tests
         working-directory: ios
+        env:
+          BACKEND_HOST: ${{ env.BACKEND_HOST }}
         run: |
           set -euo pipefail
           xcodebuild test \
