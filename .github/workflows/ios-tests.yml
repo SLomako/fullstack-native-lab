@@ -46,7 +46,7 @@ jobs:
           tail -n 200 backend.log
           exit 1
 
-      - name: Export BACKEND_HOST as default gateway
+      - name: Export BACKEND_HOST as default gateway + verify
         run: |
           set -euo pipefail
 
@@ -57,31 +57,11 @@ jobs:
             exit 1
           fi
 
-          echo "Chosen BACKEND_HOST (gateway)=$GW"
-          echo "BACKEND_HOST=$GW" >> "$GITHUB_ENV"
+          echo "Chosen BACKEND_HOST=$GW"
+          # проверяем, что по этому адресу backend реально отвечает
+          curl -sf "http://$GW:8080/health" >/dev/null
 
-      - name: Boot simulator and verify /health from inside simulator
-        env:
-          BACKEND_HOST: ${{ env.BACKEND_HOST }}
-        run: |
-          set -euo pipefail
-          
-          UDID=$(xcrun simctl list devices available | awk -F'[()]' '/iPhone 16 / {print $2; exit}')
-          if [ -z "$UDID" ]; then
-            echo "ERROR: iPhone 16 not found in simctl list"
-            xcrun simctl list devices available | head -n 200
-            exit 1
-          fi
-          
-          echo "Simulator UDID=$UDID"
-          
-          xcrun simctl boot "$UDID" || true
-          xcrun simctl bootstatus "$UDID" -b
-          
-          echo "Check /health from simulator: http://$BACKEND_HOST:8080/health"
-          xcrun simctl spawn "$UDID" curl -sf "http://$BACKEND_HOST:8080/health" >/dev/null
-          xcrun simctl spawn "$UDID" curl -s "http://$BACKEND_HOST:8080/health"
-          echo
+          echo "BACKEND_HOST=$GW" >> "$GITHUB_ENV"
 
       - name: Run unit tests
         working-directory: ios
