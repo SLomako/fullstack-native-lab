@@ -17,7 +17,9 @@ final class iosUITests: XCTestCase {
         // --- backend check (до запуска приложения) ---
         let host = ProcessInfo.processInfo.environment["BACKEND_HOST"] ?? "127.0.0.1"
         let url = URL(string: "http://\(host):8080/health")!
-        print("DEBUG /health url: \(url.absoluteString)")
+        XCTContext.runActivity(named: "DEBUG backend url") { activity in
+            activity.add(XCTAttachment(string: url.absoluteString))
+        }
 
         let exp = expectation(description: "Backend /health responds")
 
@@ -39,7 +41,9 @@ final class iosUITests: XCTestCase {
         }.resume()
 
         waitForExpectations(timeout: 10.0)
-        print("DEBUG /health response:\n\(debugText)")
+        XCTContext.runActivity(named: "DEBUG /health response") { activity in
+            activity.add(XCTAttachment(string: debugText))
+        }
         XCTAssertTrue(backendOk, "Backend is not reachable or returned unexpected response.\n\(debugText)")
         // --- end backend check ---
 
