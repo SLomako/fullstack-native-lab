@@ -13,33 +13,32 @@ final class iosUITests: XCTestCase {
     }
 
     func testTapCheckStatusShowsCorrectLabel() throws {
+
+        // --- backend check (до запуска приложения) ---
         let host = ProcessInfo.processInfo.environment["BACKEND_HOST"] ?? "127.0.0.1"
-        let url = URL(string: "http://\(host):8080/health") !
+        let url = URL(string: "http://\(host):8080/health")!
         print("DEBUG /health url: \(url.absoluteString)")
 
-        let expectation = XCTestExpectation(description: "Backend /health responds")
+        let exp = expectation(description: "Backend /health responds")
 
         var backendOk = false
         var debugText = ""
 
-        URLSession.shared.dataTask(with: url) {
-            data, response, error in
-            defer {
-                expectation.fulfill()
-            }
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            defer { exp.fulfill() }
 
             if let error = error {
                 debugText = "ERROR: \(error)"
                 return
             }
 
-            let status = (response as ?HTTPURLResponse)?.statusCode ?? - 1
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
             let body = String(data: data ?? Data(), encoding: .utf8) ?? "<non-utf8>"
             debugText = "HTTP \(status)\n\(body)"
             backendOk = (status == 200) && body.contains("\"status\":\"ok\"")
         }.resume()
 
-        wait(for: [expectation], timeout: 10)
+        waitForExpectations(timeout: 10.0)
         print("DEBUG /health response:\n\(debugText)")
         XCTAssertTrue(backendOk, "Backend is not reachable or returned unexpected response.\n\(debugText)")
         // --- end backend check ---
