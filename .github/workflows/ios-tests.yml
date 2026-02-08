@@ -1,4 +1,4 @@
-name: iOS UI Tests (with backend)
+name: iOS Tests (unit + UI with backend)
 
 on:
   pull_request:
@@ -33,23 +33,32 @@ jobs:
           JAR=$(ls build/libs/backend-*.jar | head -n 1)
           nohup java -jar "$JAR" --server.address=0.0.0.0 --server.port=8080 > backend.log 2>&1 &
 
-      - name: Wait for backend
+      - name: Wait for backend (localhost)
         run: |
           for i in {1..60}; do
             curl -sf http://127.0.0.1:8080/health >/dev/null && exit 0
             sleep 1
           done
+          echo "Backend did not start in time"
           exit 1
 
-      - name: Set BACKEND_HOST
+      - name: Set BACKEND_HOST (simulator reachable)
         run: |
           set -euo pipefail
-          for ip in $(ifconfig | awk '/inet /{print $2}' | grep -v '^127\.'); do
-            curl -sf "http://$ip:8080/health" >/dev/null || continue
-            echo "BACKEND_HOST=$ip" >> "$GITHUB_ENV"
-            exit 0
-          done
-          exit 1
+          HOST=$(ipconfig getifaddr en0 || ipconfig getifaddr en1)
+          if [ -z "$HOST" ]; then
+            echo "Could not determine en0/en1 IP"
+            exit 1
+          fi
+          echo "BACKEND_HOST=$HOST" >> "$GITHUB_ENV"
+
+      - name: Run unit tests
+        working-directory: ios
+        run: |
+          xcodebuild test \
+            -scheme iosTests \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5'
 
       - name: Run UI tests
         working-directory: ios
