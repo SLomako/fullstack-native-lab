@@ -3,7 +3,7 @@ name: iOS UI Tests (with backend)
 on:
   pull_request:
     paths:
-      - 'ios/**'
+      - "ios/**"
     branches: [ main ]
 
 jobs:
@@ -20,14 +20,14 @@ jobs:
       - name: Set up Java 21
         uses: actions/setup-java@v3
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "21"
+          distribution: "temurin"
 
       - name: Build backend
         working-directory: backend
         run: ./gradlew bootJar
 
-      - name: Run backend and wait for /health
+      - name: Run backend and wait for /health (localhost)
         working-directory: backend
         run: |
           set -euo pipefail
@@ -46,14 +46,25 @@ jobs:
           tail -n 200 backend.log
           exit 1
 
-      - name: Export backend host
+      - name: Export BACKEND_HOST (en0/en1) + verify reachable
         run: |
           set -euo pipefail
-          HOST=$(ipconfig getifaddr en0 || ipconfig getifaddr en1)
+
+          HOST=$(ipconfig getifaddr en0 2>/dev/null || true)
           if [ -z "$HOST" ]; then
-            echo "BACKEND_HOST is empty (en0/en1 not found)"
+            HOST=$(ipconfig getifaddr en1 2>/dev/null || true)
+          fi
+
+          if [ -z "$HOST" ]; then
+            echo "ERROR: cannot detect host IP (en0/en1 empty)"
             exit 1
           fi
+
+          echo "Chosen BACKEND_HOST=$HOST"
+
+          # проверяем, что бэкенд доступен по этому IP
+          curl -sf "http://$HOST:8080/health" >/dev/null
+
           echo "BACKEND_HOST=$HOST" >> "$GITHUB_ENV"
 
       - name: Run unit tests
