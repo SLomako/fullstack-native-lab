@@ -28,7 +28,7 @@ jobs:
       - name: Run backend JAR
         run: |
           nohup java -jar build/libs/backend-*.jar > app.log 2>&1 &
-          sleep 10  # подождать, пока поднимется сервер
+          sleep 10
 
       - name: Run all tests (unit + API)
         run: ./gradlew test
