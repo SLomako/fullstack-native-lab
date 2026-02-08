@@ -46,22 +46,27 @@ jobs:
           tail -n 200 backend.log
           exit 1
 
-      - name: Export BACKEND_HOST as default gateway + verify
+      - name: Pick BACKEND_HOST that отвечает /health
         run: |
           set -euo pipefail
-
-          GW=$(route -n get default | awk '/gateway: / {print $2}')
-          if [ -z "$GW" ]; then
-            echo "ERROR: cannot detect default gateway"
-            route -n get default || true
-            exit 1
-          fi
-
-          echo "Chosen BACKEND_HOST=$GW"
-          # проверяем, что по этому адресу backend реально отвечает
-          curl -sf "http://$GW:8080/health" >/dev/null
-
-          echo "BACKEND_HOST=$GW" >> "$GITHUB_ENV"
+          
+          CANDIDATES=$(ifconfig | awk '/inet / && $2 != "127.0.0.1" {print $2}' | sort -u)
+          echo "IP candidates:"
+          echo "$CANDIDATES"
+          
+          for ip in $CANDIDATES; do
+            echo "Try $ip ..."
+            if curl -sf --connect-timeout 1 --max-time 2 "http://$ip:8080/health" >/dev/null; then
+              echo "Picked BACKEND_HOST=$ip"
+              echo "BACKEND_HOST=$ip" >> "$GITHUB_ENV"
+              curl -s "http://$ip:8080/health"
+              echo
+              exit 0
+            fi
+          done
+          
+          echo "ERROR: No reachable IP found for backend on :8080"
+          exit 1
 
       - name: Run unit tests
         working-directory: ios
