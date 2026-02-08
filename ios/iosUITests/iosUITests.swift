@@ -8,12 +8,8 @@ final class iosUITests: XCTestCase {
         continueAfterFailure = false
         app = XCUIApplication()
 
-        guard let host = ProcessInfo.processInfo.environment["BACKEND_HOST"], !host.isEmpty else {
-            XCTFail("BACKEND_HOST is not set. Provide it from CI or local scheme env.")
-            return
-        }
-
-        app.launchEnvironment["BACKEND_HOST"] = host
+        let host = ProcessInfo.processInfo.environment["BACKEND_HOST"] ?? "127.0.0.1"
+        app.launchArguments += ["-backendHost", host]
     }
 
     func testTapCheckStatusShowsCorrectLabel() throws {

@@ -1,10 +1,23 @@
 import Foundation
 
 struct StatusCheckService {
-    func getStatus() async throws -> StatusCheckModel {
-        let host = ProcessInfo.processInfo.environment["BACKEND_HOST"] ?? "127.0.0.1"
-        let url = URL(string: "http://\(host):8080/health")!
 
+    private func backendHost() -> String {
+        let args = ProcessInfo.processInfo.arguments
+        if let i = args.firstIndex(of: "-backendHost"), i + 1 < args.count {
+            return args[i + 1]
+        }
+
+        if let env = ProcessInfo.processInfo.environment["BACKEND_HOST"], !env.isEmpty {
+            return env
+        }
+
+        return "127.0.0.1"
+    }
+
+    func getStatus() async throws -> StatusCheckModel {
+        let host = backendHost()
+        let url = URL(string: "http://\(host):8080/health")!
         let (data, _) = try await URLSession.shared.data(from: url)
         return try StatusCheckParser.parse(data: data)
     }

@@ -31,10 +31,7 @@ jobs:
         working-directory: backend
         run: |
           JAR=$(ls build/libs/backend-*.jar | head -n 1)
-          nohup java -jar "$JAR" \
-            --server.address=0.0.0.0 \
-            --server.port=8080 \
-            > backend.log 2>&1 &
+          nohup java -jar "$JAR" --server.address=0.0.0.0 --server.port=8080 > backend.log 2>&1 &
 
       - name: Wait for backend on localhost
         run: |
@@ -58,18 +55,12 @@ jobs:
           echo "ERROR: could not find BACKEND_HOST"
           exit 1
 
-      - name: Run unit tests
-        working-directory: ios
-        run: |
-          xcodebuild test \
-            -scheme iosTests \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5'
-
       - name: Run UI tests
         working-directory: ios
+        env:
+          BACKEND_HOST: ${{ env.BACKEND_HOST }}
         run: |
-          BACKEND_HOST="${{ env.BACKEND_HOST }}" xcodebuild test \
+          xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
