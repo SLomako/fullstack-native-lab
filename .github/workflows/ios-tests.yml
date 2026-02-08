@@ -46,25 +46,28 @@ jobs:
           tail -n 200 backend.log
           exit 1
 
-      - name: Export BACKEND_HOST (en0/en1) + verify reachable
+      - name: Export BACKEND_HOST from default route + verify
         run: |
           set -euo pipefail
-
-          HOST=$(ipconfig getifaddr en0 2>/dev/null || true)
-          if [ -z "$HOST" ]; then
-            HOST=$(ipconfig getifaddr en1 2>/dev/null || true)
+          
+          IFACE=$(route -n get default | awk '/interface: / {print $2}')
+          if [ -z "$IFACE" ]; then
+          echo "ERROR: cannot detect default route interface"
+          exit 1
           fi
-
+          
+          HOST=$(ipconfig getifaddr "$IFACE" 2>/dev/null || true)
           if [ -z "$HOST" ]; then
-            echo "ERROR: cannot detect host IP (en0/en1 empty)"
-            exit 1
+          echo "ERROR: cannot get IP for interface $IFACE"
+          ifconfig "$IFACE" || true
+          exit 1
           fi
-
+          
+          echo "Default route interface: $IFACE"
           echo "Chosen BACKEND_HOST=$HOST"
-
-          # проверяем, что бэкенд доступен по этому IP
+          
           curl -sf "http://$HOST:8080/health" >/dev/null
-
+          
           echo "BACKEND_HOST=$HOST" >> "$GITHUB_ENV"
 
       - name: Run unit tests
@@ -74,6 +77,14 @@ jobs:
             -scheme iosTests \
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5'
+
+      - name: Debug chosen host
+        run: |
+          set -euo pipefail
+          echo "BACKEND_HOST=$BACKEND_HOST"
+          curl -v "http://$BACKEND_HOST:8080/health" || true
+          route -n get default || true
+          ifconfig || true
 
       - name: Run UI tests
         working-directory: ios
