@@ -3,7 +3,7 @@ name: iOS UI Tests (with backend)
 on:
   pull_request:
     paths:
-      - "ios/**"
+      - 'ios/**'
     branches: [ main ]
 
 jobs:
@@ -20,52 +20,50 @@ jobs:
       - name: Set up Java 21
         uses: actions/setup-java@v3
         with:
-          java-version: "21"
-          distribution: "temurin"
+          java-version: '21'
+          distribution: 'temurin'
 
       - name: Build backend
         working-directory: backend
         run: ./gradlew bootJar
 
-      - name: Run backend and wait for /health (localhost)
+      - name: Run backend
         working-directory: backend
         run: |
-          set -euo pipefail
-
           JAR=$(ls build/libs/backend-*.jar | head -n 1)
           nohup java -jar "$JAR" \
             --server.address=0.0.0.0 \
             --server.port=8080 \
             > backend.log 2>&1 &
 
+      - name: Wait for backend on localhost
+        run: |
           for i in {1..60}; do
             curl -sf http://127.0.0.1:8080/health >/dev/null && exit 0
             sleep 1
           done
-
-          tail -n 200 backend.log
+          echo "Backend did not start in time"
           exit 1
 
-      - name: Pick BACKEND_HOST that отвечает /health
+      - name: Pick BACKEND_HOST (IP reachable from simulator)
         run: |
           set -euo pipefail
-          
-          CANDIDATES=$(ifconfig | awk '/inet / && $2 != "127.0.0.1" {print $2}' | sort -u)
+
           echo "IP candidates:"
-          echo "$CANDIDATES"
-          
-          for ip in $CANDIDATES; do
+          ifconfig | awk '/inet /{print $2}' | grep -v '^127\.' || true
+
+          # пробуем все IP, которые не 127.*, и выбираем первый, где /health отвечает
+          for ip in $(ifconfig | awk '/inet /{print $2}' | grep -v '^127\.'); do
             echo "Try $ip ..."
-            if curl -sf --connect-timeout 1 --max-time 2 "http://$ip:8080/health" >/dev/null; then
-              echo "Picked BACKEND_HOST=$ip"
+            if curl -sf "http://$ip:8080/health" >/dev/null; then
               echo "BACKEND_HOST=$ip" >> "$GITHUB_ENV"
+              echo "Picked BACKEND_HOST=$ip"
               curl -s "http://$ip:8080/health"
-              echo
               exit 0
             fi
           done
-          
-          echo "ERROR: No reachable IP found for backend on :8080"
+
+          echo "ERROR: Could not find an IP reachable from runner that serves /health"
           exit 1
 
       - name: Run unit tests
@@ -75,22 +73,6 @@ jobs:
             -scheme iosTests \
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5'
-
-      - name: Boot simulator + check /health from simulator
-        run: |
-          set -euo pipefail
-          
-          # берем любой iPhone 16* на iOS 18.5 (у тебя есть iPhone 16, Pro, Pro Max, 16e)
-          UDID=$(xcrun simctl list devices available | awk -F'[()]' '/-- iOS 18\.5 --/{f=1;next} /^--/{f=0} f && /iPhone 16/ {print $2; exit}')
-          echo "Simulator UDID=$UDID"
-          
-          xcrun simctl bootstatus "$UDID" -b
-          
-          HOST="${BACKEND_HOST:-}"
-          echo "Check from simulator: http://$HOST:8080/health"
-          
-          # ВАЖНО: curl внутри симулятора
-          xcrun simctl spawn "$UDID" /usr/bin/curl -sf --connect-timeout 2 --max-time 5 "http://$HOST:8080/health"
 
       - name: Run UI tests
         working-directory: ios
