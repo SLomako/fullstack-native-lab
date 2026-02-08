@@ -65,24 +65,21 @@ jobs:
           BACKEND_HOST: ${{ env.BACKEND_HOST }}
         run: |
           set -euo pipefail
-
-          UDID=$(xcrun simctl list devices available | awk -F'[()]' '/iPhone 16/ && /18\.5/ {print $2; exit}')
+          
+          UDID=$(xcrun simctl list devices available | awk -F'[()]' '/iPhone 16 / {print $2; exit}')
           if [ -z "$UDID" ]; then
-            echo "ERROR: iPhone 16 (18.5) not found in simctl list"
+            echo "ERROR: iPhone 16 not found in simctl list"
             xcrun simctl list devices available | head -n 200
             exit 1
           fi
-
+          
           echo "Simulator UDID=$UDID"
-
-          # бутаем и ждём готовности
+          
           xcrun simctl boot "$UDID" || true
           xcrun simctl bootstatus "$UDID" -b
-
+          
           echo "Check /health from simulator: http://$BACKEND_HOST:8080/health"
-
           xcrun simctl spawn "$UDID" curl -sf "http://$BACKEND_HOST:8080/health" >/dev/null
-
           xcrun simctl spawn "$UDID" curl -s "http://$BACKEND_HOST:8080/health"
           echo
 
