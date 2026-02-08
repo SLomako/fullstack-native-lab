@@ -45,25 +45,17 @@ jobs:
           echo "Backend did not start in time"
           exit 1
 
-      - name: Pick BACKEND_HOST (IP reachable from simulator)
+      - name: Pick BACKEND_HOST reachable from simulator
         run: |
           set -euo pipefail
-
-          echo "IP candidates:"
-          ifconfig | awk '/inet /{print $2}' | grep -v '^127\.' || true
-
-          # пробуем все IP, которые не 127.*, и выбираем первый, где /health отвечает
           for ip in $(ifconfig | awk '/inet /{print $2}' | grep -v '^127\.'); do
-            echo "Try $ip ..."
             if curl -sf "http://$ip:8080/health" >/dev/null; then
               echo "BACKEND_HOST=$ip" >> "$GITHUB_ENV"
-              echo "Picked BACKEND_HOST=$ip"
-              curl -s "http://$ip:8080/health"
+              echo "Chosen BACKEND_HOST=$ip"
               exit 0
             fi
           done
-
-          echo "ERROR: Could not find an IP reachable from runner that serves /health"
+          echo "ERROR: could not find BACKEND_HOST"
           exit 1
 
       - name: Run unit tests
@@ -76,14 +68,13 @@ jobs:
 
       - name: Run UI tests
         working-directory: ios
-        env:
-          BACKEND_HOST: ${{ env.BACKEND_HOST }}
         run: |
           xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
-            -resultBundlePath ui.xcresult
+            -resultBundlePath ui.xcresult \
+            BACKEND_HOST="${{ env.BACKEND_HOST }}"
 
       - name: Pack UI xcresult
         if: always()
