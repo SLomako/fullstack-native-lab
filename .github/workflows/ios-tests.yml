@@ -76,6 +76,22 @@ jobs:
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5'
 
+      - name: Boot simulator + check /health from simulator
+        run: |
+          set -euo pipefail
+          
+          # берем любой iPhone 16* на iOS 18.5 (у тебя есть iPhone 16, Pro, Pro Max, 16e)
+          UDID=$(xcrun simctl list devices available | awk -F'[()]' '/-- iOS 18\.5 --/{f=1;next} /^--/{f=0} f && /iPhone 16/ {print $2; exit}')
+          echo "Simulator UDID=$UDID"
+          
+          xcrun simctl bootstatus "$UDID" -b
+          
+          HOST="${BACKEND_HOST:-}"
+          echo "Check from simulator: http://$HOST:8080/health"
+          
+          # ВАЖНО: curl внутри симулятора
+          xcrun simctl spawn "$UDID" /usr/bin/curl -sf --connect-timeout 2 --max-time 5 "http://$HOST:8080/health"
+
       - name: Run UI tests
         working-directory: ios
         env:
