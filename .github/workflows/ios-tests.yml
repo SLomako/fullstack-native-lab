@@ -69,12 +69,11 @@ jobs:
       - name: Run UI tests
         working-directory: ios
         run: |
-          xcodebuild test \
+          BACKEND_HOST="${{ env.BACKEND_HOST }}" xcodebuild test \
             -scheme iosUITests \
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
-            -resultBundlePath ui.xcresult \
-            BACKEND_HOST="${{ env.BACKEND_HOST }}"
+            -resultBundlePath ui.xcresult
 
       - name: Pack UI xcresult
         if: always()
