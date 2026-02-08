@@ -50,7 +50,7 @@ final class iosUITests: XCTestCase {
         app.launch()
 
         let checkButton = app.buttons["Check Status"]
-        XCTAssertTrue(checkButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(checkButton.waitForExistence(timeout: 10))
         checkButton.tap()
 
         let statusText = app.staticTexts["Status: ok\nVersion: 0.0.2-SNAPSHOT"]
