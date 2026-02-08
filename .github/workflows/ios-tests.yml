@@ -33,26 +33,22 @@ jobs:
           JAR=$(ls build/libs/backend-*.jar | head -n 1)
           nohup java -jar "$JAR" --server.address=0.0.0.0 --server.port=8080 > backend.log 2>&1 &
 
-      - name: Wait for backend on localhost
+      - name: Wait for backend
         run: |
           for i in {1..60}; do
             curl -sf http://127.0.0.1:8080/health >/dev/null && exit 0
             sleep 1
           done
-          echo "Backend did not start in time"
           exit 1
 
-      - name: Pick BACKEND_HOST reachable from simulator
+      - name: Set BACKEND_HOST
         run: |
           set -euo pipefail
           for ip in $(ifconfig | awk '/inet /{print $2}' | grep -v '^127\.'); do
-            if curl -sf "http://$ip:8080/health" >/dev/null; then
-              echo "BACKEND_HOST=$ip" >> "$GITHUB_ENV"
-              echo "Chosen BACKEND_HOST=$ip"
-              exit 0
-            fi
+            curl -sf "http://$ip:8080/health" >/dev/null || continue
+            echo "BACKEND_HOST=$ip" >> "$GITHUB_ENV"
+            exit 0
           done
-          echo "ERROR: could not find BACKEND_HOST"
           exit 1
 
       - name: Run UI tests
@@ -70,9 +66,7 @@ jobs:
         if: always()
         working-directory: ios
         run: |
-          if [ -d ui.xcresult ]; then
-            ditto -c -k --keepParent ui.xcresult ui.xcresult.zip
-          fi
+          [ -d ui.xcresult ] && ditto -c -k --keepParent ui.xcresult ui.xcresult.zip
 
       - name: Upload UI xcresult
         if: always()

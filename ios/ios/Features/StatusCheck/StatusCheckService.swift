@@ -7,11 +7,6 @@ struct StatusCheckService {
         if let i = args.firstIndex(of: "-backendHost"), i + 1 < args.count {
             return args[i + 1]
         }
-
-        if let env = ProcessInfo.processInfo.environment["BACKEND_HOST"], !env.isEmpty {
-            return env
-        }
-
         return "127.0.0.1"
     }
 
